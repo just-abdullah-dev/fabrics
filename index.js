@@ -15,7 +15,7 @@ app.listen(port, function() {                          // connecting to a server
 var connection = mysql.createConnection({  
     host: "localhost",          
     user: "root",  
-    password: "12345678",
+    password: "Fabrics2#",
     database: "fabrics1"                
 });
 
@@ -23,6 +23,8 @@ connection.connect(function(err) {                // connecting to DBMS
     if (err) throw err;  
     console.log("Connected!");  
 });
+
+
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -38,7 +40,7 @@ app.get('/', (req, res) => {
 }));*/
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const userSql = 'SELECT Gmail, Password FROM login WHERE Gmail = ?';
+    const userSql = 'SELECT Gmail, Password FROM Login WHERE Gmail = ?';
 
     connection.query(userSql, [username], (err, results) => {
         if (err) {
@@ -207,7 +209,8 @@ app.post('/placeorders', (req, res) => {
 
         res.status(201).json({ message: 'Order placed successfully!', orderID: result.insertId });
     });
-});app.post('/api/addClient', (req, res) => {
+});
+app.post('/api/addClient', (req, res) => {
     const { companyName, phoneNumber, address } = req.body;
 
     // Ensure all fields are provided
@@ -246,7 +249,7 @@ app.post('/placeorders', (req, res) => {
       }
 
       // ✅ Step 1: Fetch Company Details
-      const getCompanyQuery = 'SELECT companyName, address, phoneNo FROM companyorders WHERE companyOrderID = ?';
+      const getCompanyQuery = 'SELECT companyName, address, phoneNo FROM CompanyOrders WHERE companyOrderID = ?';
       connection.query(getCompanyQuery, [companyID], (err, companyResult) => {
           if (err) {
               return connection.rollback(() => {
@@ -275,7 +278,7 @@ app.post('/placeorders', (req, res) => {
 
               if (stockResult.length === 0) {
                   return connection.rollback(() => {
-                      res.status(404).json({ success: false, message: 'Product not found in inventory.' });
+                      res.status(404).json({ success: false, message: 'Product not found in Inventory.' });
                   });
               }
 
@@ -328,7 +331,7 @@ app.post('/placeorders', (req, res) => {
                           const totalBill = quantity * price;
 
                           const updateCompanyOrdersQuery = `
-            UPDATE companyorders
+            UPDATE CompanyOrders
             SET RemainingAmount = RemainingAmount+ ?,
             TotalAmount=TotalAmount+ ?
             WHERE CompanyName = ?
@@ -362,7 +365,7 @@ app.post('/placeorders', (req, res) => {
   });
   // Route to fetch data from companyorders table
 app.get('/api/getCompanyOrders', (req, res) => {
-    const query = 'SELECT CompanyName, Address, PhoneNo, RemainingAmount ,TotalAmount FROM companyorders';
+    const query = 'SELECT CompanyName, Address, PhoneNo, RemainingAmount ,TotalAmount FROM CompanyOrders';
   
     connection.query(query, (err, results) => {
       if (err) {
@@ -378,7 +381,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
     const companyName = req.params.CompanyName;
   
     // Query to fetch the payment history for the given company ID
-    const query = 'SELECT o.price,p.OrderID, p.AmountRemaining, p.DateTime, i.ProductName FROM  payments p JOIN orders o ON p.OrderID = o.OrderID JOIN inventory i ON o.Product = i.ProductID WHERE  p.CompanyName = ?ORDER BY   p.DateTime DESC;';
+    const query = 'SELECT o.price,p.OrderID, p.AmountRemaining, p.DateTime, i.ProductName FROM  Payments p JOIN Orders o ON p.OrderID = o.OrderID JOIN Inventory i ON o.Product = i.ProductID WHERE  p.CompanyName = ?ORDER BY   p.DateTime DESC;';
     
     connection.query(query, [companyName], (err, results) => {
       if (err) {
@@ -429,7 +432,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
   
         // Now update the RemainingAmount in the CompanyOrders table
         // Fetch the current TotalAmount and RemainingAmount from CompanyOrders
-        const companyQuery = 'SELECT paid, AmountRemaining FROM payments WHERE OrderID = ?';
+        const companyQuery = 'SELECT paid, AmountRemaining FROM Payments WHERE OrderID = ?';
         connection.query(companyQuery, [orderID], (companyErr, companyResult) => {
           if (companyErr) {
             console.error('Error fetching company data: ', companyErr);
@@ -449,7 +452,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
           let newpaid=noDecimal1+paymentAmount;
           // Update the CompanyOrders table
           const updateCompanyQuery = `
-            UPDATE payments
+            UPDATE Payments
             SET AmountRemaining = ?,
             paid=?
             WHERE OrderID = ?
@@ -460,7 +463,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
               return res.status(500).json({ success: false, message: 'Failed to update company order.' });
             }
             const updateCompanyOrdersQuery = `
-            UPDATE companyorders
+            UPDATE CompanyOrders
             SET RemainingAmount = RemainingAmount - ?
             WHERE CompanyName = ?
           `;
@@ -488,7 +491,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
         IFNULL(SUM((o.PayedAmount /o.price )* (o.price - i.PricePerMeter)), 0) AS GeneratedIncome, 
         IFNULL(SUM(o.Income), 0) AS TotalIncome
       FROM 
-        companyorders c
+        CompanyOrders c
       LEFT JOIN 
         Orders o ON c.CompanyName = o.CompanyName
       LEFT JOIN
@@ -512,7 +515,7 @@ app.get('/api/getCompanyOrders', (req, res) => {
     const companyName = req.params.CompanyName;
   
     // Query to fetch the payment history for the given company ID
-    const query = 'SELECT o.OrderID, o.Product, o.PayedAmount, i.ProductName, o.DateTime, o.Income, ((o.PayedAmount /o.price )* (o.price - i.PricePerMeter)) AS ExtraPaid FROM orders o JOIN  inventory i ON o.Product = i.ProductID WHERE  o.CompanyName = ?ORDER BY  o.DateTime DESC;';
+    const query = 'SELECT o.OrderID, o.Product, o.PayedAmount, i.ProductName, o.DateTime, o.Income, ((o.PayedAmount /o.price )* (o.price - i.PricePerMeter)) AS ExtraPaid FROM Orders o JOIN  Inventory i ON o.Product = i.ProductID WHERE  o.CompanyName = ?ORDER BY  o.DateTime DESC;';
     
     connection.query(query, [companyName], (err, results) => {
       if (err) {
@@ -541,9 +544,9 @@ app.post('/api/generateReport', (req, res) => {
   // MySQL query to get total sales, income, and expenses in the given date range
   const query = `
     SELECT 
-      (SELECT SUM(quantity) FROM orders WHERE DateTime BETWEEN ? AND ?) AS totalSales,
+      (SELECT SUM(quantity) FROM Orders WHERE DateTime BETWEEN ? AND ?) AS totalSales,
       (select IFNULL(SUM((o.PayedAmount /o.price )* (o.price - i.PricePerMeter)), 0) FROM Orders o LEFT JOIN Inventory i ON o.Product = i.ProductID WHERE DateTime BETWEEN ? AND ?) AS totalIncome,
-      (SELECT SUM(TotalAmount) FROM expenses WHERE DateTime BETWEEN ? AND ?) AS totalExpenses
+      (SELECT SUM(TotalAmount) FROM Expenses WHERE DateTime BETWEEN ? AND ?) AS totalExpenses
   `;
 
   // Execute the query
@@ -599,7 +602,7 @@ app.post('/api/returnPayment', (req, res) => {
 
     // Update the Orders table with the new PayedAmount
     const updateinventoryQuery = `
-      UPDATE inventory
+      UPDATE Inventory
       SET Remaining = Remaining + ?
       WHERE productID = ?
     `;
@@ -611,7 +614,7 @@ app.post('/api/returnPayment', (req, res) => {
 
       // Now update the RemainingAmount in the CompanyOrders table
       // Fetch the current TotalAmount and RemainingAmount from CompanyOrders
-      const companyQuery = 'SELECT paid, AmountRemaining FROM payments WHERE OrderID = ?';
+      const companyQuery = 'SELECT paid, AmountRemaining FROM Payments WHERE OrderID = ?';
       connection.query(companyQuery, [orderID], (companyErr, companyResult) => {
         if (companyErr) {
           console.error('Error fetching company data: ', companyErr);
@@ -631,7 +634,7 @@ app.post('/api/returnPayment', (req, res) => {
         let newpaid=noDecimal1+paymentAmount;
         // Update the CompanyOrders table
         const updateCompanyQuery = `
-          UPDATE payments
+          UPDATE Payments
           SET AmountRemaining = ?,
           paid=?
           WHERE OrderID = ?
@@ -642,7 +645,7 @@ app.post('/api/returnPayment', (req, res) => {
             return res.status(500).json({ success: false, message: 'Failed to update company order.' });
           }
           const updateCompanyOrdersQuery = `
-          UPDATE companyorders
+          UPDATE CompanyOrders
           SET RemainingAmount = RemainingAmount - ?
           WHERE CompanyName = ?
         `;
@@ -652,7 +655,7 @@ app.post('/api/returnPayment', (req, res) => {
             return res.status(500).json({ success: false, message: 'Failed to update company orders.' });
           }
           const updateOrdersquantityQuery = `
-          UPDATE orders
+          UPDATE Orders
           SET quantity = quantity - ?,
           TotalBill=TotalBill - ?,
           Income=Income-?
