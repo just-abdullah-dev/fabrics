@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="styles/styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <p><strong>Chudhary Fabrics</strong></p>
+    </div>
+    <div class="menu">
+      <a href="orders.html"><i class="fas fa-shopping-cart"></i><span>Orders</span></a>
+      <a href="inventory.html"><i class="fas fa-warehouse"></i><span>Inventory</span></a>
+      <a href="payment.html"><i class="fas fa-dollar-sign"></i><span>Payments</span></a>
+      <a href="income.html"><i class="fas fa-chart-line"></i><span>Income</span></a>
+      <a href="expense.html"><i class="fas fa-money-bill-wave"></i><span>Expenses</span></a>
+      <a href="report.html"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+      <a href="index.html"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </div>
+    <button class="toggle-btn" id="toggle-btn">
+      <i class="fas fa-angle-left"></i>
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="card">
+      <h1><strong>Generate Report</strong></h1>
+
+      <div class="form-group mt-4 d-flex">
+        <!-- From Date -->
+        <div>
+          <label for="fromDate">From Date</label>
+          <input type="date" id="fromDate" class="form-control">
+        </div>
+        <!-- To Date -->
+        <div class="ml-3">
+          <label for="toDate">To Date</label>
+          <input type="date" id="toDate" class="form-control">
+        </div>
+      </div>
+
+      <button id="generateReportBtn" class="btn" style="background-color: #666664;color: white;">Generate Report</button>
+
+      <!-- Report Summary -->
+      <div class="report-summary mt-5" id="reportResult">
+        <h3><strong>Report Summary</strong></h3>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Total Product Sales</th>
+              <th>Total Income</th>
+              <th>Total Expenses</th>
+              <th>Profit</th>
+              <th>Loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be populated dynamically here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+// Sidebar toggle button
+const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const toggleIcon = toggleBtn.querySelector('i');
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      toggleIcon.classList.toggle('fa-angle-left');
+      toggleIcon.classList.toggle('fa-angle-right');
+    });
+
+    $(document).ready(function() {
+      $('#generateReportBtn').click(function() {
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
+
+        // Validate the form
+        if (!fromDate || !toDate) {
+          alert('Please select both dates.');
+          return;
+        }
+
+        // Send the dates to the backend
+        $.ajax({
+          url: '/api/generateReport',  // Backend API URL
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ fromDate: fromDate, toDate: toDate }),
+          success: function(response) {
+            // Clear previous results
+            $('#reportResult tbody').html('');
+
+            // Populate the report data
+            const reportData = response.data;
+            const tableRow = `
+              <tr>
+                <td>${reportData.totalSales} Units</td>
+                <td>${reportData.totalIncome}</td>
+                <td>${reportData.totalExpenses}</td>
+                <td>${reportData.profit}</td>
+                <td>${reportData.loss}</td>
+              </tr>
+            `;
+            $('#reportResult tbody').append(tableRow);
+          },
+          error: function(error) {
+            alert('Error generating the report. Please try again.');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
