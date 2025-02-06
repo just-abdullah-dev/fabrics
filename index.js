@@ -8,12 +8,15 @@ app.use(express.urlencoded({ extended: true })); // Parses form data (applicatio
 app.use(express.json()); // Parses JSON data
 
 
-app.listen(port, function() {                          // connecting to a server
-    console.log(`Listening on port ${port}...`);  
+// app.listen(port, function() {                          // connecting to a server
+//     console.log(`Listening on port ${port}...`);  
+// });
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Listening on port ${port}...`); 
 });
 
 var connection = mysql.createConnection({  
-    host: "localhost",          
+    host: "127.0.0.1",          
     user: "root",  
     password: "Fabrics2#",
     database: "fabrics1"                
@@ -29,7 +32,7 @@ connection.connect(function(err) {                // connecting to DBMS
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve the HTML file
-app.get('/', (req, res) => {
+app.get('/', (req, res) => {  
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 // Use express-session to handle sessions
