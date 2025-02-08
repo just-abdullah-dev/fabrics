@@ -375,9 +375,10 @@ function submitPayment(orderID, paymentAmount,entered, remainingPayment,Quantity
 
     return;
   }
+  qu=(document.getElementById("entered").value );
+  console.log(qu);
 
-
-  const payload = { orderID, paymentAmount };
+  const payload = { orderID, paymentAmount,qu};
 
   fetch('/api/returnPayment', {
     method: 'POST',
