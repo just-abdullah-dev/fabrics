@@ -704,7 +704,7 @@ app.get("/api/getCompanyOrdersIncome", (req, res) => {
         IFNULL(SUM((o.PayedAmount /o.price )* (o.price - i.PricePerMeter)), 0) AS GeneratedIncome, 
         IFNULL(SUM(o.Income), 0) AS TotalIncome
       FROM 
-        companyorders c
+        CompanyOrders c
       LEFT JOIN 
         Orders o ON c.CompanyName = o.CompanyName
       LEFT JOIN
